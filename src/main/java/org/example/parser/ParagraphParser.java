@@ -3,40 +3,30 @@ package org.example.parser;
 import org.example.entity.Paragraph;
 import org.example.entity.Text;
 import org.example.entity.TextComponent;
+import org.example.exception.TextProcessingException;
+import org.example.util.RegexPatterns;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
-public class ParagraphParser extends AbstractTextParser {
+public final class ParagraphParser extends AbstractTextParser {
+    private final SentenceParser sentenceParser;
 
-    private static final String PARAGRAPH_REGEX = "(?:\\R\\s*){2,}";
-    private static final Pattern PARAGRAPH_PATTERN =
-            Pattern.compile(PARAGRAPH_REGEX);
+    public ParagraphParser(SentenceParser sentenceParser) {
+        this.sentenceParser = sentenceParser;
+    }
 
-    @Override
-    public TextComponent parse(String input) {
-        Text text = new Text();
-
-        String normalized = input == null ? "" : input.strip();
-
+    public List<Paragraph> parse(String source) {
+        String normalized = source.replace("\r\n", "\n").replace('\r', '\n').strip();
         if (normalized.isEmpty()) {
-            return text;
+            throw new TextProcessingException("Input text is empty");
         }
-
-        String[] paragraphs = PARAGRAPH_PATTERN.split(normalized);
-
-        for (String paragraphText : paragraphs) {
-            String trimmed = paragraphText.strip()
-                    .replaceAll("\\s+", " ");
-
-            if (!trimmed.isEmpty()) {
-                TextComponent parsed = parseNext(trimmed);
-
-                if (parsed instanceof Paragraph paragraph) {
-                    text.add(paragraph);
-                }
-            }
-        }
-
-        return text;
+        String[] blocks = normalized.split(RegexPatterns.PARAGRAPH_SEPARATOR);
+        return Arrays.stream(blocks)
+                .map(String::strip)
+                .filter(block -> !block.isEmpty())
+                .map(block -> new Paragraph(sentenceParser.parse(block)))
+                .toList();
     }
 }

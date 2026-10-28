@@ -1,10 +1,7 @@
 package org.example.parser;
 
-import org.example.entity.TextComponent;
+import org.example.entity.Text;
 
 public interface TextParser {
-
-    TextComponent parse(String input);
-
-    void setNextParser(TextParser nextParser);
+    Text parse(String source);
 }
