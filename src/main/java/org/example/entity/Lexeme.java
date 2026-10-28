@@ -1,20 +1,14 @@
 package org.example.entity;
 
-public class Lexeme extends TextComposite {
-
-    private final String value;
-
-    public Lexeme(String value) {
-        this.value = value;
+public record Lexeme(String value) implements TextComponent {
+    public Lexeme {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Lexeme must not be blank");
+        }
     }
 
     @Override
-    protected String getChildSeparator() {
-        return "";
-    }
-
-    @Override
-    public String getContent() {
+    public String asText() {
         return value;
     }
 }
